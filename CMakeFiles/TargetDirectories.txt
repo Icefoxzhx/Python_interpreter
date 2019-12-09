@@ -1,0 +1,4 @@
+/media/icefox/本地磁盘/Useless/sjtu/Programming/Python_Assignment-master/CMakeFiles/rebuild_cache.dir
+/media/icefox/本地磁盘/Useless/sjtu/Programming/Python_Assignment-master/CMakeFiles/edit_cache.dir
+/media/icefox/本地磁盘/Useless/sjtu/Programming/Python_Assignment-master/CMakeFiles/antlr4-cpp-runtime.dir
+/media/icefox/本地磁盘/Useless/sjtu/Programming/Python_Assignment-master/CMakeFiles/python_interpreter.dir

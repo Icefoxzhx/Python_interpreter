@@ -1,0 +1,4 @@
+#Print Test
+print(-65536,2.6)
+print(True)
+print(None)

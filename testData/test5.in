@@ -1,0 +1,4 @@
+#Simple Evaluation
+a=True
+print(a) #Love
+print(1+1) #Hate
