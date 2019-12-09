@@ -1,4 +1,0 @@
-/media/icefox/本地磁盘/Useless/sjtu/Programming/python_interpreter/CMakeFiles/edit_cache.dir
-/media/icefox/本地磁盘/Useless/sjtu/Programming/python_interpreter/CMakeFiles/antlr4-cpp-runtime.dir
-/media/icefox/本地磁盘/Useless/sjtu/Programming/python_interpreter/CMakeFiles/rebuild_cache.dir
-/media/icefox/本地磁盘/Useless/sjtu/Programming/python_interpreter/CMakeFiles/code.dir
