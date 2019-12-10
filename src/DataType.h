@@ -224,6 +224,7 @@ public:
             case Int: os<<x.a;break;
             case Double: os<<fixed<<setprecision(6)<<x.b;break;
             case Bool: os<<(x.c?"True":"False");break;
+            case Null:os<<"None";break;
         }
         return os;
     };
