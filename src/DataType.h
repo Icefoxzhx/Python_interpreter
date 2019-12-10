@@ -404,9 +404,10 @@ public:
     }
     void toString(){
         switch(T){
-            case Int:s=string(a);break;
-            case Double:s=to_string(b);break;
-            case Bool:s=c?"True":"False";break;
+            case Int: s=string(a);break;
+            case Double: s=to_string(b);break;
+            case Bool: s=c?"True":"False";break;
+            case Null: s="None";break;
         }
         T=String;
     }
@@ -415,6 +416,7 @@ public:
             case Int: c=(bool)a;break;
             case Double: c=b;break;
             case String: c=!s.empty();break;
+            case Null: c=false;break;
         }
         T=Bool;
     }
