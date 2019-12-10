@@ -174,7 +174,7 @@ public:
         return res;
     }
 };
-enum Type{String,Int,Double,Bool,Null,Var};
+enum Type{String,Int,Double,Bool,Null,Var,Vector};
 enum F_type{None,Break,Continue,Return};
 class DataType{
 public:
@@ -184,6 +184,7 @@ public:
     BigInt a;
     double b;
     bool c;
+    vector<DataType> d;
     DataType(){FT=None;T=Null;}
     ~DataType(){}
     DataType(const string &x){

@@ -40,7 +40,7 @@ antlrcpp::Any EvalVisitor::visitSimple_stmt(Python3Parser::Simple_stmtContext *c
 
 antlrcpp::Any EvalVisitor::visitSmall_stmt(Python3Parser::Small_stmtContext *ctx) {
 	if(ctx->expr_stmt()) return visit(ctx->expr_stmt());
-	else return visit(ctx->flow_stmt());
+	return visit(ctx->flow_stmt());
 }
 
 antlrcpp::Any EvalVisitor::visitExpr_stmt(Python3Parser::Expr_stmtContext *ctx) {
@@ -48,30 +48,31 @@ antlrcpp::Any EvalVisitor::visitExpr_stmt(Python3Parser::Expr_stmtContext *ctx) 
         DataType b=visit(ctx->testlist().back()->test(0));
         DataType a=visit(ctx->testlist(0)->test(0));
         string s=a.s;
-        if(!VAR[CUR][s]){
-            VAR[CUR][s]=new DataType;
-            rec.push_back(VAR[CUR][s]);
-        }
+        assert(VAR[CUR][s]);
         if(ctx->augassign()->ADD_ASSIGN()) *VAR[CUR][s]=a+b;
         else if(ctx->augassign()->SUB_ASSIGN()) *VAR[CUR][s]=a-b;
         else if(ctx->augassign()->DIV_ASSIGN()) *VAR[CUR][s]=a/b;
         else if(ctx->augassign()->IDIV_ASSIGN()) *VAR[CUR][s]=Div(a,b);
         else if(ctx->augassign()->MOD_ASSIGN()) *VAR[CUR][s]=a%b;
         else if(ctx->augassign()->MULT_ASSIGN()) *VAR[CUR][s]=a*b;
-        return DataType();
+        return *VAR[CUR][s];
     }else if(!ctx->ASSIGN().empty()){
-        auto a=ctx->testlist();
-        auto it=a.rbegin();
-        auto aa=visit(*it).as<vector<DataType> >();
-        for(++it;it!=a.rend();++it){
-            auto b=visit(*it).as<vector<DataType> >();
-            for(auto itb=b.begin(),itt=aa.begin();itb!=b.end();++itb,++itt){
-                string s=itb->s;
+        vector<DataType>b;
+        DataType res=visit(ctx->testlist().back()->test().back());
+        if(res.T==Vector) b=res.d;
+        else{
+            for(size_t i=0,n=ctx->testlist().back()->test().size();i<n;++i){
+                b.push_back(visit(ctx->testlist().back()->test(i)));
+                b[i]=b[i].rval();
+            }
+        }
+        for(int i=(int)ctx->testlist().size()-2,n=0;i>=0;--i){
+            for(size_t j=0,m=b.size();j<m;++j){
+                string s=visit(ctx->testlist(i)->test(j)).as<DataType>().s;
                 if(!VAR[CUR][s]){
-                    VAR[CUR][s]=new DataType;
-                    rec.push_back(VAR[CUR][s]);
+                    rec.push_back(VAR[CUR][s]=new DataType);
                 }
-                *VAR[CUR][s]=itt->rval();
+                *VAR[CUR][s]=b[j];
             }
         }
         return DataType();
@@ -100,10 +101,17 @@ antlrcpp::Any EvalVisitor::visitContinue_stmt(Python3Parser::Continue_stmtContex
 
 antlrcpp::Any EvalVisitor::visitReturn_stmt(Python3Parser::Return_stmtContext *ctx) {
     if (ctx->testlist()) {
-        return visit(ctx->testlist()->test().back());
+        if(ctx->testlist()->test().size()==1) return visit(ctx->testlist()->test().back());
+        DataType res;
+        res.T=Vector;
+        for(size_t i=0,n=ctx->testlist()->test().size();i<n;++i){
+            res.d.push_back(visit(ctx->testlist()->test(i)));
+            res.d[i]=res.d[i].rval();
+        }
+        return res;
     } else {
         return DataType();
-    }//?
+    }
 }
 
 antlrcpp::Any EvalVisitor::visitCompound_stmt(Python3Parser::Compound_stmtContext *ctx) {
@@ -326,16 +334,16 @@ antlrcpp::Any EvalVisitor::visitAtom(Python3Parser::AtomContext *ctx) {
 	}
 	if(ctx->NAME()) res.T=Var;
 	if(ctx->NONE()) res.T=Null;
-	if(ctx->FALSE()) res.T=Bool,res.c=0;
-	if(ctx->TRUE()) res.T=Bool,res.c=1;
+	if(ctx->FALSE()) res.T=Bool,res.c=false;
+	if(ctx->TRUE()) res.T=Bool,res.c=true;
 	return res;
 }
 
 antlrcpp::Any EvalVisitor::visitTestlist(Python3Parser::TestlistContext *ctx) {
 	auto a=ctx->test();
 	vector<DataType>b;
-    for(auto it=a.begin();it!=a.end();++it){
-        b.push_back(visit(*it).as<DataType>());
+    for(auto & it : a){
+        b.push_back(visit(it).as<DataType>());
     }
     return b;
 }
