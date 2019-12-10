@@ -11,6 +11,14 @@ antlrcpp::Any EvalVisitor::visitFile_input(Python3Parser::File_inputContext *ctx
 antlrcpp::Any EvalVisitor::visitFuncdef(Python3Parser::FuncdefContext *ctx) {
 	string s=ctx->NAME()->getText();
 	Func[s]=ctx;
+	rec.push_back(Funcp[s]=new DataType);
+	DataType *p=Funcp[s];
+	if(ctx->parameters()->typedargslist()){
+	    for(size_t i=0,n=ctx->parameters()->typedargslist()->test().size();i<n;++i){
+	        p->d.push_back(visit(ctx->parameters()->typedargslist()->test(i)));
+	        p->d[i]=p->d[i].rval();
+	    }
+	}
 	return DataType();
 }
 
@@ -271,48 +279,55 @@ antlrcpp::Any EvalVisitor::visitFactor(Python3Parser::FactorContext *ctx) {
 antlrcpp::Any EvalVisitor::visitAtom_expr(Python3Parser::Atom_exprContext *ctx) {
 	if(ctx->trailer()){
 	    string func=ctx->atom()->NAME()->getText();
-	    vector<Python3Parser::ArgumentContext*>a;
-	    if(ctx->trailer()->arglist()) a=ctx->trailer()->arglist()->argument();
+	    vector<DataType>a;
+	    vector<Python3Parser::ArgumentContext *>b;
+	    if(ctx->trailer()->arglist()){
+            b=ctx->trailer()->arglist()->argument();
+	        for(size_t i=0,n=b.size();i<n;++i){
+                a.push_back(visit(b[i]->test()));
+                a[i]=a[i].rval();
+	        }
+	    }
 		if(func== "print"){
             for(auto it=a.begin();it!=a.end();++it){
                 if(it!=a.begin()) cout<<' ';
-                DataType b=visit(*it).as<DataType>();
-                cout<<b.rval();
+                cout<<*it;
             }
             puts("");
             return DataType();
 		}
 		if(func=="int"){
-            auto res=visit(a.back()).as<DataType>().rval();
+            auto res=a.back();
             res.toInt();
             return res;
 		}
         if(func=="float"){
-            auto res=visit(a.back()).as<DataType>().rval();
+            auto res=a.back();
             res.toDouble();
             return res;
         }
         if(func=="str"){
-            auto res=visit(a.back()).as<DataType>().rval();
+            auto res=a.back();
             res.toString();
             return res;
         }
         if(func=="bool"){
-            auto res=visit(a.back()).as<DataType>().rval();
+            auto res=a.back();
             res.toBool();
             return res;
         }
         VAR[CUR+1]=VAR[0];
         auto p=Func[func]->parameters()->typedargslist();
+        auto c=Funcp[func]->d;
         if(p){
-            for(size_t i=0,n=p->tfpdef().size(),m=p->test().size();i<n;++i){
+            for(size_t i=0,n=p->tfpdef().size(),m=c.size();i<n;++i){
                 string s=p->tfpdef(i)->getText();
                 if(!VAR[CUR+1][s]) rec.push_back(VAR[CUR+1][s]=new DataType);
-                if(i>=n-m) *VAR[CUR+1][s]=visit(p->test(m-n+i)).as<DataType>().rval();
+                if(i>=n-m) *VAR[CUR+1][s]=c[m-n+i];
             }
             for(size_t i=0,n=a.size();i<n;++i){
-                string s=a[i]->NAME()?a[i]->NAME()->getText():p->tfpdef(i)->getText();
-                *VAR[CUR+1][s]=visit(a[i]->test()).as<DataType>().rval();
+                string s=b[i]->NAME()?b[i]->NAME()->getText():p->tfpdef(i)->getText();
+                *VAR[CUR+1][s]=a[i];
             }
         }
         ++CUR;

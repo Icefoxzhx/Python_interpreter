@@ -19,6 +19,7 @@ int CUR=0;
 vector<DataType*>rec;
 
 map<string, Python3Parser::FuncdefContext*>Func;
+map<string, DataType* >Funcp;
 class BigUInt:vector<int>{
 public:
     friend BigInt;
