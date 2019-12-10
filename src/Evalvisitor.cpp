@@ -101,9 +101,11 @@ antlrcpp::Any EvalVisitor::visitContinue_stmt(Python3Parser::Continue_stmtContex
 
 antlrcpp::Any EvalVisitor::visitReturn_stmt(Python3Parser::Return_stmtContext *ctx) {
     if (ctx->testlist()) {
-        if(ctx->testlist()->test().size()==1) return visit(ctx->testlist()->test().back());
-        DataType res;
+        DataType res=visit(ctx->testlist()->test().back());
+        res=res.rval();
+        if(ctx->testlist()->test().size()==1) return res;
         res.T=Vector;
+        res.d.clear();
         for(size_t i=0,n=ctx->testlist()->test().size();i<n;++i){
             res.d.push_back(visit(ctx->testlist()->test(i)));
             res.d[i]=res.d[i].rval();
@@ -193,7 +195,12 @@ antlrcpp::Any EvalVisitor::visitAnd_test(Python3Parser::And_testContext *ctx) {
 }
 
 antlrcpp::Any EvalVisitor::visitNot_test(Python3Parser::Not_testContext *ctx) {
-	if(ctx->NOT()) return DataType(!visitNot_test(ctx->not_test()).as<DataType>().rval().c);
+	if(ctx->NOT()){
+        DataType res=visitNot_test(ctx->not_test()).as<DataType>().rval();
+        res.toBool();
+        res.c=!res.c;
+	    return res;
+	}
 	return visit(ctx->comparison());
 }
 
