@@ -43,6 +43,9 @@ public:
             if(x[i]!=y[i]) return false;
         return true;
     }
+    friend bool operator<=(const BigUInt &x,const BigUInt &y){
+        return x<y||x==y;
+    }
     friend BigUInt operator+(const BigUInt &x,const BigUInt &y){
         BigUInt res=x;
         res.resize(max(y.size(),x.size())+1);
@@ -79,10 +82,10 @@ public:
     }
     friend BigUInt operator/(const BigUInt &x,const BigUInt &y){//DIV
         BigUInt res,z=x;
-        for(int i=z.size()-y.size();y<z;--i){
+        for(int i=z.size()-y.size();y<=z;--i){
             BigUInt c;c.assign(i+1,0);c.back()=1;
             BigUInt d=c*y;
-            while(d<z){
+            while(d<=z){
                 z=z-d;
                 res=res+c;
             }
