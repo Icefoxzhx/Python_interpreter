@@ -368,13 +368,13 @@ public:
             else return x.b==y.b;
         }
     }
-    friend bool operator!=(DataType x,DataType y){
+    friend bool operator!=(const DataType& x,const DataType& y){
         return !(x==y);
     }
-    friend bool operator>=(DataType x,DataType y){
+    friend bool operator>=(const DataType& x,const DataType& y){
         return x>y||x==y;
     }
-    friend bool operator<=(DataType x,DataType y){
+    friend bool operator<=(const DataType& x,const DataType& y){
         return x<y||x==y;
     }
     void rev(){

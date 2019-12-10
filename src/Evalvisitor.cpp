@@ -200,14 +200,17 @@ antlrcpp::Any EvalVisitor::visitNot_test(Python3Parser::Not_testContext *ctx) {
 antlrcpp::Any EvalVisitor::visitComparison(Python3Parser::ComparisonContext *ctx) {
     if(ctx->comp_op().empty()) return visit(ctx->arith_expr(0));
     bool res=true;
+    DataType lst=visit(ctx->arith_expr(0)).as<DataType>();
     for(size_t i=0,n=ctx->comp_op().size();i<n;++i){
-        if(ctx->comp_op(i)->EQUALS()) res&=visit(ctx->arith_expr(i)).as<DataType>()==visit(ctx->arith_expr(i+1)).as<DataType>();
-        else if(ctx->comp_op(i)->GREATER_THAN()) res&=visit(ctx->arith_expr(i)).as<DataType>()>visit(ctx->arith_expr(i+1)).as<DataType>();
-        else if(ctx->comp_op(i)->LESS_THAN()) res&=visit(ctx->arith_expr(i)).as<DataType>()<visit(ctx->arith_expr(i+1)).as<DataType>();
-        else if(ctx->comp_op(i)->GT_EQ()) res&=visit(ctx->arith_expr(i)).as<DataType>()>=visit(ctx->arith_expr(i+1)).as<DataType>();
-        else if(ctx->comp_op(i)->LT_EQ()) res&=visit(ctx->arith_expr(i)).as<DataType>()<=visit(ctx->arith_expr(i+1)).as<DataType>();
-        else res&=visit(ctx->arith_expr(i)).as<DataType>()!=visit(ctx->arith_expr(i+1)).as<DataType>();
+        DataType x=visit(ctx->arith_expr(i+1)).as<DataType>();
+        if(ctx->comp_op(i)->EQUALS()) res&=lst==x;
+        else if(ctx->comp_op(i)->GREATER_THAN()) res&=lst>x;
+        else if(ctx->comp_op(i)->LESS_THAN()) res&=lst<x;
+        else if(ctx->comp_op(i)->GT_EQ()) res&=lst>=x;
+        else if(ctx->comp_op(i)->LT_EQ()) res&=lst<=x;
+        else res&=lst!=x;
         if(!res) return DataType(res);
+        lst=x;
     }
     return DataType(res);
 }
@@ -303,7 +306,7 @@ antlrcpp::Any EvalVisitor::visitAtom_expr(Python3Parser::Atom_exprContext *ctx) 
         }
         ++CUR;
         DataType res=visit(Func[func]->suite());
-        --CUR;//memory check
+        --CUR;
         return res;
 	}
 	return visit(ctx->atom());
