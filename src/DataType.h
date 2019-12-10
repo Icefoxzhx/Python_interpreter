@@ -377,7 +377,11 @@ public:
     friend bool operator<=(DataType x,DataType y){
         return x<y||x==y;
     }
-    void rev(){a.sgn*=-1;b=b*-1;}
+    void rev(){
+        *this=rval();
+        a.sgn*=-1;
+        b=b*-1;
+    }
     void toInt(){
         switch(T){
             case String: a=BigInt(s);break;

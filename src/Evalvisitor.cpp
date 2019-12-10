@@ -146,6 +146,7 @@ antlrcpp::Any EvalVisitor::visitWhile_stmt(Python3Parser::While_stmtContext *ctx
         VAR[CUR+1]=VAR[CUR];++CUR;
 	    res=visit(ctx->suite()).as<DataType>();--CUR;
 	    if(res.FT==Break) break;
+	    if(res.FT==Return) return res;
 	}
 	return DataType();
 }
@@ -287,19 +288,20 @@ antlrcpp::Any EvalVisitor::visitAtom_expr(Python3Parser::Atom_exprContext *ctx) 
             res.toBool();
             return res;
         }
-        VAR[CUR+1]=VAR[0];++CUR;
+        VAR[CUR+1]=VAR[0];
         auto p=Func[func]->parameters()->typedargslist();
         if(p){
             for(size_t i=0,n=p->tfpdef().size(),m=p->test().size();i<n;++i){
                 string s=p->tfpdef(i)->getText();
-                if(!VAR[CUR][s]) rec.push_back(VAR[CUR][s]=new DataType);
-                if(i>=n-m) *VAR[CUR][s]=visit(p->test(m-n+i)).as<DataType>().rval();
+                if(!VAR[CUR+1][s]) rec.push_back(VAR[CUR+1][s]=new DataType);
+                if(i>=n-m) *VAR[CUR+1][s]=visit(p->test(m-n+i)).as<DataType>().rval();
             }
             for(size_t i=0,n=a.size();i<n;++i){
                 string s=a[i]->NAME()?a[i]->NAME()->getText():p->tfpdef(i)->getText();
-                *VAR[CUR][s]=visit(a[i]->test()).as<DataType>().rval();
+                *VAR[CUR+1][s]=visit(a[i]->test()).as<DataType>().rval();
             }
         }
+        ++CUR;
         DataType res=visit(Func[func]->suite());
         --CUR;//memory check
         return res;
