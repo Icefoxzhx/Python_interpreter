@@ -66,7 +66,7 @@ antlrcpp::Any EvalVisitor::visitExpr_stmt(Python3Parser::Expr_stmtContext *ctx) 
                 b[i]=b[i].rval();
             }
         }
-        for(int i=(int)ctx->testlist().size()-2,n=0;i>=0;--i){
+        for(int i=(int)ctx->testlist().size()-2;i>=0;--i){
             for(size_t j=0,m=b.size();j<m;++j){
                 string s=visit(ctx->testlist(i)->test(j)).as<DataType>().s;
                 if(!VAR[CUR][s]){
@@ -119,7 +119,7 @@ antlrcpp::Any EvalVisitor::visitReturn_stmt(Python3Parser::Return_stmtContext *c
 antlrcpp::Any EvalVisitor::visitCompound_stmt(Python3Parser::Compound_stmtContext *ctx) {
 	if(ctx->funcdef()) return visit(ctx->funcdef());
 	if(ctx->if_stmt()) return visit(ctx->if_stmt());
-	if(ctx->while_stmt()) return visit(ctx->while_stmt());
+	return visit(ctx->while_stmt());
 }
 
 antlrcpp::Any EvalVisitor::visitIf_stmt(Python3Parser::If_stmtContext *ctx) {
@@ -172,11 +172,12 @@ antlrcpp::Any EvalVisitor::visitOr_test(Python3Parser::Or_testContext *ctx) {
 	if(ctx->OR().empty()){
 		return visit(ctx->and_test(0));
 	}else{
-		bool res=false;
 		auto a=ctx->and_test();
 		for(auto & it : a) {
-            res |= visitAnd_test(it).as<DataType>().rval().c;
-            if(res) return DataType(true);
+		    DataType res=visit(it);
+		    res=res.rval();
+		    res.toBool();
+            if(res.c) return res;
         }
 		return DataType(false);
 	}
@@ -186,10 +187,13 @@ antlrcpp::Any EvalVisitor::visitAnd_test(Python3Parser::And_testContext *ctx) {
 	if(ctx->AND().empty()){
 		return visit(ctx->not_test(0));
 	}else{
-		bool res=true;
 		auto a=ctx->not_test();
-		for(auto & it : a)
-			if(!(res&=visitNot_test(it).as<DataType>().rval().c)) return DataType(false);
+		for(auto & it : a){
+		    DataType res=visit(it);
+		    res=res.rval();
+		    res.toBool();
+		    if(!res.c) return res;
+		}
 		return DataType(true);
 	}
 }
