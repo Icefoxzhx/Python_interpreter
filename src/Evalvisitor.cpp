@@ -209,9 +209,9 @@ antlrcpp::Any EvalVisitor::visitNot_test(Python3Parser::Not_testContext *ctx) {
 antlrcpp::Any EvalVisitor::visitComparison(Python3Parser::ComparisonContext *ctx) {
     if(ctx->comp_op().empty()) return visit(ctx->arith_expr(0));
     bool res=true;
-    DataType lst=visit(ctx->arith_expr(0)).as<DataType>();
+    DataType lst=visit(ctx->arith_expr(0));
     for(size_t i=0,n=ctx->comp_op().size();i<n;++i){
-        DataType x=visit(ctx->arith_expr(i+1)).as<DataType>();
+        DataType x=visit(ctx->arith_expr(i+1));
         if(ctx->comp_op(i)->EQUALS()) res&=lst==x;
         else if(ctx->comp_op(i)->GREATER_THAN()) res&=lst>x;
         else if(ctx->comp_op(i)->LESS_THAN()) res&=lst<x;
@@ -259,8 +259,9 @@ antlrcpp::Any EvalVisitor::visitMuls_op(Python3Parser::Muls_opContext *ctx) {
 
 antlrcpp::Any EvalVisitor::visitFactor(Python3Parser::FactorContext *ctx) {
     if(ctx->addsub_op()){
-        DataType res=visit(ctx->factor()).as<DataType>();
-        if(ctx->addsub_op()->MINUS()) res.rev();
+        DataType res=visit(ctx->factor());
+        if(ctx->addsub_op()->MINUS())
+            res=res*DataType(BigInt((string)"-1"));
         return res;
     }
     return visit(ctx->atom_expr());

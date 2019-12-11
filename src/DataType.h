@@ -104,8 +104,12 @@ public:
     void check(){
         a.check();if(a.empty()) sgn=0;
     }
-    explicit BigInt(const string &s):a(s){
-        sgn=1;this->check();
+    explicit BigInt(const string &s){
+        if(s.find('-')!=s.npos) sgn=-1;
+        else sgn=1;
+        for(auto it=s.rbegin();it!=s.rend();++it)
+            if(*it!='-') a.push_back(*it-'0');
+        this->check();
     }
     explicit BigInt(const bool x){
         if(x) a.push_back(1),sgn=1;
