@@ -268,69 +268,67 @@ antlrcpp::Any EvalVisitor::visitFactor(Python3Parser::FactorContext *ctx) {
 }
 
 antlrcpp::Any EvalVisitor::visitAtom_expr(Python3Parser::Atom_exprContext *ctx) {
-	if(ctx->trailer()){
-	    string func=ctx->atom()->NAME()->getText();
-	    vector<DataType>a;
-	    vector<Python3Parser::ArgumentContext *>b;
-	    if(ctx->trailer()->arglist()){
-            b=ctx->trailer()->arglist()->argument();
-	        for(size_t i=0,n=b.size();i<n;++i){
-                a.push_back(visit(b[i]->test()));
-                a[i]=a[i].rval();
-	        }
-	    }
-		if(func== "print"){
-            for(auto it=a.begin();it!=a.end();++it){
-                if(it!=a.begin()) cout<<' ';
-                cout<<*it;
-            }
-            puts("");
-            return DataType();
-		}
-		if(func=="int"){
-            auto res=a.back();
-            res.toInt();
-            return res;
-		}
-        if(func=="float"){
-            auto res=a.back();
-            res.toDouble();
-            return res;
+    if(!ctx->trailer()) return visit(ctx->atom());
+    string func=ctx->atom()->NAME()->getText();
+    vector<DataType>a;
+    vector<Python3Parser::ArgumentContext *>b;
+    if(ctx->trailer()->arglist()){
+        b=ctx->trailer()->arglist()->argument();
+        for(size_t i=0,n=b.size();i<n;++i){
+            a.push_back(visit(b[i]->test()));
+            a[i]=a[i].rval();
         }
-        if(func=="str"){
-            auto res=a.back();
-            res.toString();
-            return res;
+    }
+    if(func== "print"){
+        for(auto it=a.begin();it!=a.end();++it){
+            if(it!=a.begin()) cout<<' ';
+            cout<<*it;
         }
-        if(func=="bool"){
-            auto res=a.back();
-            res.toBool();
-            return res;
-        }
-        NEWVAR.clear();
-        auto p=Func[func]->parameters()->typedargslist();
-        auto c=Funcp[func]->d;
-        if(p){
-            for(size_t i=0,n=p->tfpdef().size(),m=c.size();i<n;++i){
-                string s=p->tfpdef(i)->getText();
-                rec.push_back(NEWVAR[s]=new DataType);
-                if(i>=n-m) *NEWVAR[s]=c[m-n+i];
-            }
-            for(size_t i=0,n=a.size();i<n;++i){
-                string s=b[i]->NAME()?b[i]->NAME()->getText():p->tfpdef(i)->getText();
-                *NEWVAR[s]=a[i];
-            }
-        }
-        VAR[++CUR]=VAR[0];
-        for(auto &it:NEWVAR){
-            VAR[CUR][it.first]=it.second;
-        }
-        DataType res=visit(Func[func]->suite());
-        res.FT=None;
-        --CUR;
+        puts("");
+        return DataType();
+    }
+    if(func=="int"){
+        auto res=a.back();
+        res.toInt();
         return res;
-	}
-	return visit(ctx->atom());
+    }
+    if(func=="float"){
+        auto res=a.back();
+        res.toDouble();
+        return res;
+    }
+    if(func=="str"){
+        auto res=a.back();
+        res.toString();
+        return res;
+    }
+    if(func=="bool"){
+        auto res=a.back();
+        res.toBool();
+        return res;
+    }
+    NEWVAR.clear();
+    auto p=Func[func]->parameters()->typedargslist();
+    auto c=Funcp[func]->d;
+    if(p){
+        for(size_t i=0,n=p->tfpdef().size(),m=c.size();i<n;++i){
+            string s=p->tfpdef(i)->getText();
+            rec.push_back(NEWVAR[s]=new DataType);
+            if(i>=n-m) *NEWVAR[s]=c[m-n+i];
+        }
+        for(size_t i=0,n=a.size();i<n;++i){
+            string s=b[i]->NAME()?b[i]->NAME()->getText():p->tfpdef(i)->getText();
+            *NEWVAR[s]=a[i];
+        }
+    }
+    VAR[++CUR]=VAR[0];
+    for(auto &it:NEWVAR){
+        VAR[CUR][it.first]=it.second;
+    }
+    DataType res=visit(Func[func]->suite());
+    res.FT=None;
+    --CUR;
+    return res;
 }
 
 antlrcpp::Any EvalVisitor::visitTrailer(Python3Parser::TrailerContext *ctx) {
