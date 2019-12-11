@@ -332,6 +332,7 @@ antlrcpp::Any EvalVisitor::visitAtom_expr(Python3Parser::Atom_exprContext *ctx) 
         }
         ++CUR;
         DataType res=visit(Func[func]->suite());
+        res.FT=None;
         --CUR;
         return res;
 	}
