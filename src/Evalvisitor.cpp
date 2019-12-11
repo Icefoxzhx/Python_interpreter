@@ -299,7 +299,7 @@ antlrcpp::Any EvalVisitor::visitAtom_expr(Python3Parser::Atom_exprContext *ctx) 
         res.toBool();
         return res;
     }
-    NEWVAR.clear();
+    map<string,DataType*> NEWVAR;
     auto p=Func[func]->parameters()->typedargslist();
     auto c=Funcp[func]->d;
     if(p){

@@ -12,7 +12,7 @@ class BigInt;
 
 class DataType;
 
-map<string,DataType*>VAR[4010],NEWVAR;
+map<string,DataType*>VAR[4010];
 
 int CUR=0;
 
