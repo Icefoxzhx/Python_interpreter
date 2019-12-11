@@ -101,15 +101,13 @@ antlrcpp::Any EvalVisitor::visitContinue_stmt(Python3Parser::Continue_stmtContex
 
 antlrcpp::Any EvalVisitor::visitReturn_stmt(Python3Parser::Return_stmtContext *ctx) {
     if (ctx->testlist()) {
-        DataType res=visit(ctx->testlist()->test().back());
-        res=res.rval();
-        if(ctx->testlist()->test().size()==1) return res;
-        res.T=Vector;
-        res.d.clear();
-        for(size_t i=0,n=ctx->testlist()->test().size();i<n;++i){
-            res.d.push_back(visit(ctx->testlist()->test(i)));
-            res.d[i]=res.d[i].rval();
+        if(ctx->testlist()->test().size()==1){
+            DataType res=visit(ctx->testlist()->test().back());
+            return res.rval();
         }
+        DataType res;
+        res.T=Vector;
+        res.d=visit(ctx->testlist()).as<vector<DataType> >();
         return res;
     } else {
         return DataType();
