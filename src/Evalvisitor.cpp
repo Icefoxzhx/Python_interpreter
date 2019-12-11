@@ -16,7 +16,6 @@ antlrcpp::Any EvalVisitor::visitFuncdef(Python3Parser::FuncdefContext *ctx) {
 	if(ctx->parameters()->typedargslist()){
 	    for(size_t i=0,n=ctx->parameters()->typedargslist()->test().size();i<n;++i){
 	        p->d.push_back(visit(ctx->parameters()->typedargslist()->test(i)));
-	        p->d[i]=p->d[i].rval();
 	    }
 	}
 	return DataType();
@@ -53,9 +52,9 @@ antlrcpp::Any EvalVisitor::visitSmall_stmt(Python3Parser::Small_stmtContext *ctx
 
 antlrcpp::Any EvalVisitor::visitExpr_stmt(Python3Parser::Expr_stmtContext *ctx) {
     if(ctx->augassign()){
-        DataType b=visit(ctx->testlist().back()->test(0));
+        DataType b=visit(ctx->testlist(1)->test(0));
         DataType a=visit(ctx->testlist(0)->test(0));
-        string s=a.s;
+        string s=ctx->testlist(0)->test(0)->getText();
         assert(VAR[CUR][s]);
         if(ctx->augassign()->ADD_ASSIGN()) *VAR[CUR][s]=a+b;
         else if(ctx->augassign()->SUB_ASSIGN()) *VAR[CUR][s]=a-b;
@@ -68,7 +67,7 @@ antlrcpp::Any EvalVisitor::visitExpr_stmt(Python3Parser::Expr_stmtContext *ctx) 
         vector<DataType>b=visit(ctx->testlist().back());
         for(int i=(int)ctx->testlist().size()-2;i>=0;--i){
             for(size_t j=0,m=b.size();j<m;++j){
-                string s=visit(ctx->testlist(i)->test(j)).as<DataType>().s;
+                string s=ctx->testlist(i)->test(j)->getText();
                 if(!VAR[CUR][s]){
                     rec.push_back(VAR[CUR][s]=new DataType);
                 }
@@ -101,10 +100,7 @@ antlrcpp::Any EvalVisitor::visitContinue_stmt(Python3Parser::Continue_stmtContex
 
 antlrcpp::Any EvalVisitor::visitReturn_stmt(Python3Parser::Return_stmtContext *ctx) {
     if (ctx->testlist()) {
-        if(ctx->testlist()->test().size()==1){
-            DataType res=visit(ctx->testlist()->test().back());
-            return res.rval();
-        }
+        if(ctx->testlist()->test().size()==1) return visit(ctx->testlist()->test(0));
         DataType res;
         res.T=Vector;
         res.d=visit(ctx->testlist()).as<vector<DataType> >();
@@ -123,7 +119,6 @@ antlrcpp::Any EvalVisitor::visitCompound_stmt(Python3Parser::Compound_stmtContex
 antlrcpp::Any EvalVisitor::visitIf_stmt(Python3Parser::If_stmtContext *ctx) {
     for(size_t i=0,n=ctx->test().size();i<n;++i){
         DataType res=visit(ctx->test(i));
-        res=res.rval();
         res.toBool();
         if(!res.c) continue;
         VAR[CUR+1]=VAR[CUR];++CUR;
@@ -141,7 +136,7 @@ antlrcpp::Any EvalVisitor::visitIf_stmt(Python3Parser::If_stmtContext *ctx) {
 antlrcpp::Any EvalVisitor::visitWhile_stmt(Python3Parser::While_stmtContext *ctx) {
 	while(true){
 	    DataType res=visit(ctx->test());
-	    res=res.rval();res.toBool();
+	    res.toBool();
 	    if(!res.c) break;
         VAR[CUR+1]=VAR[CUR];++CUR;
 	    res=visit(ctx->suite()).as<DataType>();--CUR;
@@ -173,7 +168,6 @@ antlrcpp::Any EvalVisitor::visitOr_test(Python3Parser::Or_testContext *ctx) {
 		auto a=ctx->and_test();
 		for(auto & it : a) {
 		    DataType res=visit(it);
-		    res=res.rval();
 		    res.toBool();
             if(res.c) return res;
         }
@@ -188,7 +182,6 @@ antlrcpp::Any EvalVisitor::visitAnd_test(Python3Parser::And_testContext *ctx) {
 		auto a=ctx->not_test();
 		for(auto & it : a){
 		    DataType res=visit(it);
-		    res=res.rval();
 		    res.toBool();
 		    if(!res.c) return res;
 		}
@@ -198,7 +191,7 @@ antlrcpp::Any EvalVisitor::visitAnd_test(Python3Parser::And_testContext *ctx) {
 
 antlrcpp::Any EvalVisitor::visitNot_test(Python3Parser::Not_testContext *ctx) {
 	if(ctx->NOT()){
-        DataType res=visitNot_test(ctx->not_test()).as<DataType>().rval();
+        DataType res=visitNot_test(ctx->not_test());
         res.toBool();
         res.c=!res.c;
 	    return res;
@@ -274,9 +267,8 @@ antlrcpp::Any EvalVisitor::visitAtom_expr(Python3Parser::Atom_exprContext *ctx) 
     vector<Python3Parser::ArgumentContext *>b;
     if(ctx->trailer()->arglist()){
         b=ctx->trailer()->arglist()->argument();
-        for(size_t i=0,n=b.size();i<n;++i){
-            a.push_back(visit(b[i]->test()));
-            a[i]=a[i].rval();
+        for(auto & it : b){
+            a.push_back(visit(it->test()));
         }
     }
     if(func== "print"){
@@ -356,7 +348,7 @@ antlrcpp::Any EvalVisitor::visitAtom(Python3Parser::AtomContext *ctx) {
 	    if(s.find('.')!=s.npos) res.b=stod(s),res.T=Double;
 	    else res.toInt();
 	}
-	if(ctx->NAME()) res.T=Var;
+	if(ctx->NAME()) res=*VAR[CUR][res.s];
 	if(ctx->NONE()) res.T=Null;
 	if(ctx->FALSE()) res.T=Bool,res.c=false;
 	if(ctx->TRUE()) res.T=Bool,res.c=true;
@@ -368,7 +360,6 @@ antlrcpp::Any EvalVisitor::visitTestlist(Python3Parser::TestlistContext *ctx) {
 	vector<DataType>b;
     for(auto & it : a){
         b.push_back(visit(it));
-        b.back()=b.back().rval();
     }
     if(b.back().T==Vector) b=b.back().d;
     return b;

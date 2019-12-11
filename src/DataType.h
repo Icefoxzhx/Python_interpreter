@@ -182,7 +182,7 @@ public:
         return res;
     }
 };
-enum Type{String,Int,Double,Bool,Null,Var,Vector};
+enum Type{String,Int,Double,Bool,Null,Vector};
 enum F_type{None,Break,Continue,Return};
 class DataType{
 public:
@@ -233,13 +233,8 @@ public:
         }
         return os;
     };
-    DataType rval(){
-        return T==Var?*VAR[CUR][s]:*this;
-    }
     friend DataType operator+(DataType x,DataType y){
         DataType res;
-        x=x.rval();
-        y=y.rval();
         if(x.T==Bool) x.toInt();
         if(y.T==Bool) y.toInt();
         if(x.T==String){res.s=x.s+y.s;res.T=String;return res;}
@@ -259,8 +254,6 @@ public:
     }
     friend DataType operator-(DataType x,DataType y){
         DataType res;
-        x=x.rval();
-        y=y.rval();
         if(x.T==Bool) x.toInt();
         if(y.T==Bool) y.toInt();
         if(x.T==Int){
@@ -279,8 +272,6 @@ public:
     }
     friend DataType operator*(DataType x,DataType y){
         DataType res;
-        x=x.rval();
-        y=y.rval();
         if(x.T==Bool) x.toInt();
         if(y.T==Bool) y.toInt();
         if(x.T==String){
@@ -311,8 +302,6 @@ public:
     }
     friend DataType operator/(DataType x,DataType y){//float
         DataType res;
-        x=x.rval();
-        y=y.rval();
         x.toDouble();
         y.toDouble();
         res.T=Double;
@@ -320,24 +309,18 @@ public:
         return res;
     }
     friend DataType Div(DataType x,DataType y){
-        x=x.rval();
-        y=y.rval();
         DataType res;
         res.T=Int;
         res.a=x.a/y.a;
         return res;
     }
     friend DataType operator%(DataType x,DataType y){
-        x=x.rval();
-        y=y.rval();
         DataType res;
         res.T=Int;
         res.a=x.a-x.a/y.a*y.a;
         return res;
     }
     friend bool operator<(DataType x,DataType y){
-        x=x.rval();
-        y=y.rval();
         if(x.T==Bool) x.toInt();
         if(y.T==Bool) y.toInt();
         if(x.T==String) return x.s<y.s;
@@ -350,8 +333,6 @@ public:
         }
     }
     friend bool operator>(DataType x,DataType y){
-        x=x.rval();
-        y=y.rval();
         if(x.T==Bool) x.toInt();
         if(y.T==Bool) y.toInt();
         if(x.T==String) return x.s>y.s;
@@ -364,8 +345,6 @@ public:
         }
     }
     friend bool operator==(DataType x,DataType y){
-        x=x.rval();
-        y=y.rval();
         if(x.T==Bool) x.toInt();
         if(y.T==Bool) y.toInt();
         if(x.T==String) return x.s==y.s;
@@ -385,11 +364,6 @@ public:
     }
     friend bool operator<=(const DataType& x,const DataType& y){
         return x<y||x==y;
-    }
-    void rev(){
-        *this=rval();
-        a.sgn*=-1;
-        b=b*-1;
     }
     void toInt(){
         switch(T){
