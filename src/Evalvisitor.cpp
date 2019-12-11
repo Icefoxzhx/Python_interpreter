@@ -65,15 +65,7 @@ antlrcpp::Any EvalVisitor::visitExpr_stmt(Python3Parser::Expr_stmtContext *ctx) 
         else if(ctx->augassign()->MULT_ASSIGN()) *VAR[CUR][s]=a*b;
         return *VAR[CUR][s];
     }else if(!ctx->ASSIGN().empty()){
-        vector<DataType>b;
-        DataType res=visit(ctx->testlist().back()->test().back());
-        if(res.T==Vector) b=res.d;
-        else{
-            for(size_t i=0,n=ctx->testlist().back()->test().size();i<n;++i){
-                b.push_back(visit(ctx->testlist().back()->test(i)));
-                b[i]=b[i].rval();
-            }
-        }
+        vector<DataType>b=visit(ctx->testlist().back());
         for(int i=(int)ctx->testlist().size()-2;i>=0;--i){
             for(size_t j=0,m=b.size();j<m;++j){
                 string s=visit(ctx->testlist(i)->test(j)).as<DataType>().s;
@@ -375,8 +367,10 @@ antlrcpp::Any EvalVisitor::visitTestlist(Python3Parser::TestlistContext *ctx) {
 	auto a=ctx->test();
 	vector<DataType>b;
     for(auto & it : a){
-        b.push_back(visit(it).as<DataType>());
+        b.push_back(visit(it));
+        b.back()=b.back().rval();
     }
+    if(b.back().T==Vector) b=b.back().d;
     return b;
 }
 
