@@ -253,8 +253,14 @@ antlrcpp::Any EvalVisitor::visitMuls_op(Python3Parser::Muls_opContext *ctx) {
 antlrcpp::Any EvalVisitor::visitFactor(Python3Parser::FactorContext *ctx) {
     if(ctx->addsub_op()){
         DataType res=visit(ctx->factor());
-        if(ctx->addsub_op()->MINUS())
-            res=res*DataType(BigInt((string)"-1"));
+        if(ctx->addsub_op()->MINUS()){
+            switch(res.T){
+                case Int:res.a.sgn*=-1;break;
+                case Double: res.b*=-1;break;
+                case Bool: res.toInt();res.a.sgn*=-1;break;
+                default:;
+            }
+        }
         return res;
     }
     return visit(ctx->atom_expr());

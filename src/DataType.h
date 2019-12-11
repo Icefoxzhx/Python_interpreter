@@ -83,12 +83,13 @@ public:
     }
     friend BigUInt operator/(const BigUInt &x,const BigUInt &y){//DIV
         BigUInt res,z=x;
+        res.resize(x.size());
         for(int i=z.size()-y.size();y<=z;--i){
             BigUInt c;c.assign(i+1,0);c.back()=1;
             BigUInt d=c*y;
             while(d<=z){
                 z=z-d;
-                res=res+c;
+                res[i]++;
             }
         }
         res.check();
@@ -111,7 +112,7 @@ public:
             if(*it!='-') a.push_back(*it-'0');
         this->check();
     }
-    explicit BigInt(const bool x){
+    explicit BigInt(const bool &x){
         if(x) a.push_back(1),sgn=1;
         else sgn=0;
     }
@@ -308,13 +309,13 @@ public:
         res.b=x.b/y.b;
         return res;
     }
-    friend DataType Div(DataType x,DataType y){
+    friend DataType Div(DataType x,const DataType& y){
         DataType res;
         res.T=Int;
         res.a=x.a/y.a;
         return res;
     }
-    friend DataType operator%(DataType x,DataType y){
+    friend DataType operator%(DataType x,const DataType& y){
         DataType res;
         res.T=Int;
         res.a=x.a-x.a/y.a*y.a;
