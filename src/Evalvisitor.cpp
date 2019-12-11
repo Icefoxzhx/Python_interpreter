@@ -307,21 +307,24 @@ antlrcpp::Any EvalVisitor::visitAtom_expr(Python3Parser::Atom_exprContext *ctx) 
             res.toBool();
             return res;
         }
-        VAR[CUR+1]=VAR[0];
+        NEWVAR.clear();
         auto p=Func[func]->parameters()->typedargslist();
         auto c=Funcp[func]->d;
         if(p){
             for(size_t i=0,n=p->tfpdef().size(),m=c.size();i<n;++i){
                 string s=p->tfpdef(i)->getText();
-                if(!VAR[CUR+1][s]) rec.push_back(VAR[CUR+1][s]=new DataType);
-                if(i>=n-m) *VAR[CUR+1][s]=c[m-n+i];
+                rec.push_back(NEWVAR[s]=new DataType);
+                if(i>=n-m) *NEWVAR[s]=c[m-n+i];
             }
             for(size_t i=0,n=a.size();i<n;++i){
                 string s=b[i]->NAME()?b[i]->NAME()->getText():p->tfpdef(i)->getText();
-                *VAR[CUR+1][s]=a[i];
+                *NEWVAR[s]=a[i];
             }
         }
-        ++CUR;
+        VAR[++CUR]=VAR[0];
+        for(auto &it:NEWVAR){
+            VAR[CUR][it.first]=it.second;
+        }
         DataType res=visit(Func[func]->suite());
         res.FT=None;
         --CUR;
